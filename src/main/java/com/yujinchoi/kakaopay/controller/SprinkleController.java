@@ -1,5 +1,6 @@
 package com.yujinchoi.kakaopay.controller;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,7 +70,7 @@ public class SprinkleController {
 	}
 
 	private String generateToken() {
-		return RandomStringUtils.randomAlphabetic(3);
+		return RandomStringUtils.random(3, 0, 0, true, false, null, new SecureRandom());
 	}
 
 }
