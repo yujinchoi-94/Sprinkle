@@ -30,7 +30,6 @@ public class SprinkleService {
 	public void sprinkle(Sprinkle sprinkle) {
 		sprinkleRepository.save(sprinkle);
 		for (int amount : randomAmount(sprinkle.getAmount(), sprinkle.getUserCount())) {
-			System.out.println("쓰기");
 			Receiver receiver = new Receiver();
 			receiver.setAmount(amount);
 			receiver.setSprinkle(sprinkle);
@@ -60,7 +59,7 @@ public class SprinkleService {
 		return result;
 	}
 
-	@Transactional(timeout = 2)
+	@Transactional
 	public Integer receive(String token, int userId, String roomId) {
 		Sprinkle sprinkle = sprinkleRepository.findByTokenAndRoomId(token, roomId);
 		if (sprinkle == null) {

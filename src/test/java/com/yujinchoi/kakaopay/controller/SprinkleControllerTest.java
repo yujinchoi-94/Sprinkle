@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -211,5 +212,35 @@ public class SprinkleControllerTest {
 		ErrorResult errorResult = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorResult.class);
 		Assert.assertEquals(ErrorCode.INVALID_TOKEN.getCode(), errorResult.getCode());
 		Assert.assertEquals(ErrorCode.INVALID_TOKEN.getMessage(), errorResult.getMessage());
+	}
+
+	@Test
+	public void test_sprinkleService_throw_ObjectOptimisticLockingFailureException() throws Exception {
+		Mockito.when(sprinkleService.receive(TOKEN, USER_ID, ROOM_ID)).thenThrow(new ObjectOptimisticLockingFailureException("", new Throwable()));
+
+		MvcResult result = mockMvc.perform(post("/sprinkle/receive/{token}", TOKEN).headers(httpHeaders))
+			.andExpect(
+				mvcResult -> Assert.assertEquals(ErrorCode.TRY_LATER.getHttpStatus().value(),
+					mvcResult.getResponse().getStatus()))
+			.andReturn();
+
+		ErrorResult errorResult = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorResult.class);
+		Assert.assertEquals(ErrorCode.TRY_LATER.getCode(), errorResult.getCode());
+		Assert.assertEquals(ErrorCode.TRY_LATER.getMessage(), errorResult.getMessage());
+	}
+
+	@Test
+	public void test_sprinkleService_throw_Exception() throws Exception {
+		Mockito.when(sprinkleService.receive(TOKEN, USER_ID, ROOM_ID)).thenThrow(new IllegalArgumentException());
+
+		MvcResult result = mockMvc.perform(post("/sprinkle/receive/{token}", TOKEN).headers(httpHeaders))
+			.andExpect(
+				mvcResult -> Assert.assertEquals(ErrorCode.INTERNAL_ERROR.getHttpStatus().value(),
+					mvcResult.getResponse().getStatus()))
+			.andReturn();
+
+		ErrorResult errorResult = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorResult.class);
+		Assert.assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), errorResult.getCode());
+		Assert.assertEquals(ErrorCode.INTERNAL_ERROR.getMessage(), errorResult.getMessage());
 	}
 }

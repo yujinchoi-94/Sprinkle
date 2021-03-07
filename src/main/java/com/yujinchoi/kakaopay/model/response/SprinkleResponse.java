@@ -9,8 +9,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SprinkleResponse {
+	public SprinkleResponse() { }
+
 	@Schema(description = "뿌리기 요청 고유 토큰", required = true)
 	private String token;
-
-	public SprinkleResponse() { }
 }

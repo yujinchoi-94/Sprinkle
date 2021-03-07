@@ -29,7 +29,6 @@ import com.yujinchoi.kakaopay.model.response.SprinkleReceiveResponse;
 import com.yujinchoi.kakaopay.model.response.SprinkleResponse;
 import com.yujinchoi.kakaopay.repository.ReceiverRepository;
 import com.yujinchoi.kakaopay.repository.SprinkleRepository;
-import com.yujinchoi.kakaopay.service.SprinkleService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -37,8 +36,6 @@ import com.yujinchoi.kakaopay.service.SprinkleService;
 public class SprinkleIntegrationTest {
 	@Autowired
 	private MockMvc mockMvc;
-	@Autowired
-	private SprinkleService sprinkleService;
 	@Autowired
 	private ReceiverRepository receiverRepository;
 	@Autowired
