@@ -20,9 +20,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.yujinchoi.kakaopay.repository.SprinkleRepository;
 import com.yujinchoi.kakaopay.exception.ServiceException;
-import com.yujinchoi.kakaopay.model.Receiver;
-import com.yujinchoi.kakaopay.model.Sprinkle;
-import com.yujinchoi.kakaopay.model.response.SprinkleGetResponse;
+import com.yujinchoi.kakaopay.model.entity.Receiver;
+import com.yujinchoi.kakaopay.model.entity.Sprinkle;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleGetResponse;
 import com.yujinchoi.kakaopay.repository.ReceiverRepository;
 
 @RunWith(MockitoJUnitRunner.class)

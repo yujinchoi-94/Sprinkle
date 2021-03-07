@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.yujinchoi.kakaopay.model.Sprinkle;
-import com.yujinchoi.kakaopay.model.request.SprinkleRequest;
-import com.yujinchoi.kakaopay.model.response.SprinkleGetResponse;
-import com.yujinchoi.kakaopay.model.response.SprinkleReceiveResponse;
-import com.yujinchoi.kakaopay.model.response.SprinkleResponse;
+import com.yujinchoi.kakaopay.model.entity.Sprinkle;
+import com.yujinchoi.kakaopay.model.http.request.SprinkleRequest;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleGetResponse;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleReceiveResponse;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleResponse;
 import com.yujinchoi.kakaopay.service.SprinkleService;
 
 import io.swagger.v3.oas.annotations.Operation;

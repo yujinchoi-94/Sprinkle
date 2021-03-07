@@ -12,8 +12,7 @@ public enum ErrorCode {
 	CAN_NOT_RECEIVE(HttpStatus.BAD_REQUEST, 1003, "자신이 뿌리기한 건은 자신이 받을 수 없습니다."),
 	NO_AMOUNT_REMAIN(HttpStatus.BAD_REQUEST, 1004, "더 이상 뿌릴 금액이 없습니다."),
 	INVALID_TOKEN(HttpStatus.BAD_REQUEST, 1005, "유효하지 않은 토큰입니다."),
-	TRY_LATER(HttpStatus.SERVICE_UNAVAILABLE, 1006, "잠시 후 다시 시도하세요."),
-	INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 1007, "서버 관리자에게 문의하세요.");
+	TRY_LATER(HttpStatus.SERVICE_UNAVAILABLE, 1006, "잠시 후 다시 시도하세요.");
 
 	private HttpStatus httpStatus;
 	private int code;

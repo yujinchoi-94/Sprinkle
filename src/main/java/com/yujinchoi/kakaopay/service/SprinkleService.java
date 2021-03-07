@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.yujinchoi.kakaopay.exception.ServiceException;
-import com.yujinchoi.kakaopay.model.Sprinkle;
+import com.yujinchoi.kakaopay.model.entity.Sprinkle;
 import com.yujinchoi.kakaopay.repository.SprinkleRepository;
 import com.yujinchoi.kakaopay.exception.ErrorCode;
-import com.yujinchoi.kakaopay.model.Receiver;
-import com.yujinchoi.kakaopay.model.response.ReceiverInfo;
-import com.yujinchoi.kakaopay.model.response.SprinkleGetResponse;
+import com.yujinchoi.kakaopay.model.entity.Receiver;
+import com.yujinchoi.kakaopay.model.http.response.ReceiverInfo;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleGetResponse;
 import com.yujinchoi.kakaopay.repository.ReceiverRepository;
 
 import lombok.RequiredArgsConstructor;

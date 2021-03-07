@@ -1,4 +1,4 @@
-package com.yujinchoi.kakaopay.model.response;
+package com.yujinchoi.kakaopay.model.http.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

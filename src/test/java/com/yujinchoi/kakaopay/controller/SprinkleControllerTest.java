@@ -22,11 +22,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yujinchoi.kakaopay.exception.ErrorCode;
 import com.yujinchoi.kakaopay.exception.ErrorResult;
 import com.yujinchoi.kakaopay.exception.ServiceException;
-import com.yujinchoi.kakaopay.model.Sprinkle;
-import com.yujinchoi.kakaopay.model.request.SprinkleRequest;
-import com.yujinchoi.kakaopay.model.response.SprinkleGetResponse;
-import com.yujinchoi.kakaopay.model.response.SprinkleReceiveResponse;
-import com.yujinchoi.kakaopay.model.response.SprinkleResponse;
+import com.yujinchoi.kakaopay.model.entity.Sprinkle;
+import com.yujinchoi.kakaopay.model.http.request.SprinkleRequest;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleGetResponse;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleReceiveResponse;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleResponse;
 import com.yujinchoi.kakaopay.service.SprinkleService;
 
 @WebMvcTest(controllers = SprinkleController.class)
@@ -227,20 +227,5 @@ public class SprinkleControllerTest {
 		ErrorResult errorResult = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorResult.class);
 		Assert.assertEquals(ErrorCode.TRY_LATER.getCode(), errorResult.getCode());
 		Assert.assertEquals(ErrorCode.TRY_LATER.getMessage(), errorResult.getMessage());
-	}
-
-	@Test
-	public void test_sprinkleService_throw_Exception() throws Exception {
-		Mockito.when(sprinkleService.receive(TOKEN, USER_ID, ROOM_ID)).thenThrow(new IllegalArgumentException());
-
-		MvcResult result = mockMvc.perform(post("/sprinkle/receive/{token}", TOKEN).headers(httpHeaders))
-			.andExpect(
-				mvcResult -> Assert.assertEquals(ErrorCode.INTERNAL_ERROR.getHttpStatus().value(),
-					mvcResult.getResponse().getStatus()))
-			.andReturn();
-
-		ErrorResult errorResult = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorResult.class);
-		Assert.assertEquals(ErrorCode.INTERNAL_ERROR.getCode(), errorResult.getCode());
-		Assert.assertEquals(ErrorCode.INTERNAL_ERROR.getMessage(), errorResult.getMessage());
 	}
 }

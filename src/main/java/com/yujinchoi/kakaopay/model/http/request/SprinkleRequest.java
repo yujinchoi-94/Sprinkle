@@ -1,4 +1,4 @@
-package com.yujinchoi.kakaopay.model.request;
+package com.yujinchoi.kakaopay.model.http.request;
 
 import javax.validation.constraints.Min;
 

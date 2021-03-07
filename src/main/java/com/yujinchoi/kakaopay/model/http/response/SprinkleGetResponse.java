@@ -1,4 +1,4 @@
-package com.yujinchoi.kakaopay.model.response;
+package com.yujinchoi.kakaopay.model.http.response;
 
 import java.util.Date;
 import java.util.List;

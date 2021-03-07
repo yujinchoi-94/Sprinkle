@@ -1,4 +1,4 @@
-package com.yujinchoi.kakaopay.model;
+package com.yujinchoi.kakaopay.model.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;

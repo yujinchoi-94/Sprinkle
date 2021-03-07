@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.yujinchoi.kakaopay.model.Receiver;
-import com.yujinchoi.kakaopay.model.Sprinkle;
+import com.yujinchoi.kakaopay.model.entity.Receiver;
+import com.yujinchoi.kakaopay.model.entity.Sprinkle;
 
 @Repository
 public interface ReceiverRepository extends JpaRepository<Receiver, Long> {

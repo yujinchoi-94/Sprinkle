@@ -21,12 +21,12 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yujinchoi.kakaopay.model.Receiver;
-import com.yujinchoi.kakaopay.model.Sprinkle;
-import com.yujinchoi.kakaopay.model.request.SprinkleRequest;
-import com.yujinchoi.kakaopay.model.response.SprinkleGetResponse;
-import com.yujinchoi.kakaopay.model.response.SprinkleReceiveResponse;
-import com.yujinchoi.kakaopay.model.response.SprinkleResponse;
+import com.yujinchoi.kakaopay.model.entity.Receiver;
+import com.yujinchoi.kakaopay.model.entity.Sprinkle;
+import com.yujinchoi.kakaopay.model.http.request.SprinkleRequest;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleGetResponse;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleReceiveResponse;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleResponse;
 import com.yujinchoi.kakaopay.repository.ReceiverRepository;
 import com.yujinchoi.kakaopay.repository.SprinkleRepository;
 
