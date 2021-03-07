@@ -22,7 +22,7 @@ import com.yujinchoi.kakaopay.repository.SprinkleRepository;
 import com.yujinchoi.kakaopay.exception.ServiceException;
 import com.yujinchoi.kakaopay.model.Receiver;
 import com.yujinchoi.kakaopay.model.Sprinkle;
-import com.yujinchoi.kakaopay.model.response.SprinkleInfo;
+import com.yujinchoi.kakaopay.model.response.SprinkleGetResponse;
 import com.yujinchoi.kakaopay.repository.ReceiverRepository;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -225,13 +225,13 @@ public class SprinkleServiceUnitTest {
 		// when
 		Mockito.when(sprinkleRepository.findByTokenAndUserIdAndRoomId(token, userId, roomId)).thenReturn(sprinkle);
 		Mockito.when(receiverRepository.findBySprinkleAndUserIdIsNotNull(sprinkle)).thenReturn(receiverList);
-		SprinkleInfo sprinkleInfo = sprinkleService.get(token, userId, roomId);
+		SprinkleGetResponse sprinkleGetResponse = sprinkleService.get(token, userId, roomId);
 
 		// then
-		Assert.assertEquals(sprinkle.getCreatedAt(), sprinkleInfo.getCreatedAt());
-		Assert.assertEquals(sprinkle.getAmount(), sprinkleInfo.getSprinkleAmount());
-		Assert.assertEquals(receiverList.size(), sprinkleInfo.getReceiverInfo().size());
-		Assert.assertEquals(6, sprinkleInfo.getReceiveAmount().intValue());
+		Assert.assertEquals(sprinkle.getCreatedAt(), sprinkleGetResponse.getCreatedAt());
+		Assert.assertEquals(sprinkle.getAmount(), sprinkleGetResponse.getSprinkleAmount());
+		Assert.assertEquals(receiverList.size(), sprinkleGetResponse.getReceiverInfo().size());
+		Assert.assertEquals(6, sprinkleGetResponse.getReceiveAmount().intValue());
 	}
 
 	@Test

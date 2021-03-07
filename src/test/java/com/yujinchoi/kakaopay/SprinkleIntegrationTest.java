@@ -1,12 +1,8 @@
-package com.yujinchoi.kakaopay.service;
+package com.yujinchoi.kakaopay;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,16 +23,18 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yujinchoi.kakaopay.model.Receiver;
 import com.yujinchoi.kakaopay.model.Sprinkle;
-import com.yujinchoi.kakaopay.model.request.CommonRequest;
 import com.yujinchoi.kakaopay.model.request.SprinkleRequest;
-import com.yujinchoi.kakaopay.model.response.SprinkleInfo;
+import com.yujinchoi.kakaopay.model.response.SprinkleGetResponse;
+import com.yujinchoi.kakaopay.model.response.SprinkleReceiveResponse;
+import com.yujinchoi.kakaopay.model.response.SprinkleResponse;
 import com.yujinchoi.kakaopay.repository.ReceiverRepository;
 import com.yujinchoi.kakaopay.repository.SprinkleRepository;
+import com.yujinchoi.kakaopay.service.SprinkleService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class SprinkleServiceTest {
+public class SprinkleIntegrationTest {
 	@Autowired
 	private MockMvc mockMvc;
 	@Autowired
@@ -51,11 +49,8 @@ public class SprinkleServiceTest {
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
 
-	String roomId = "rid-x12r-123";
-
 	private HttpHeaders httpHeaders;
 	private SprinkleRequest sprinkleRequest;
-	private CommonRequest commonRequest;
 
 	private static final int USER_ID = 1234;
 	private static final String ROOM_ID = "RID-12345";
@@ -75,8 +70,6 @@ public class SprinkleServiceTest {
 		sprinkleRequest = new SprinkleRequest();
 		sprinkleRequest.setAmount(AMOUNT);
 		sprinkleRequest.setUserCount(USER_COUNT);
-
-		commonRequest = new CommonRequest();
 	}
 
 	@Test
@@ -90,8 +83,8 @@ public class SprinkleServiceTest {
 				mvcResult -> Assert.assertEquals(HttpStatus.CREATED.value(), mvcResult.getResponse().getStatus()))
 			.andReturn();
 
-		Map sprinkleResultMap = objectMapper.readValue(sprinkleResult.getResponse().getContentAsString(), Map.class);
-		String token = (String)sprinkleResultMap.get("token");
+		SprinkleResponse sprinkleResponse = objectMapper.readValue(sprinkleResult.getResponse().getContentAsString(), SprinkleResponse.class);
+		String token = sprinkleResponse.getToken();
 		Assert.assertEquals(3, token.length());
 
 		List<Sprinkle> sprinkleList = sprinkleRepository.findAll();
@@ -113,70 +106,29 @@ public class SprinkleServiceTest {
 		Assert.assertEquals(AMOUNT, totalReceiverAmount);
 
 		// 2. 받기
-		commonRequest.setToken(token);
-		MvcResult receiveResult = mockMvc.perform(post("/sprinkle/receive")
+		MvcResult receiveResult = mockMvc.perform(post("/sprinkle/receive/{token}", token)
 			.header("X-USER-ID", RECEIVE_USER_ID)
-			.header("X-ROOM-ID", ROOM_ID)
-			.content(objectMapper.writeValueAsString(commonRequest))
-			.contentType("application/json"))
+			.header("X-ROOM-ID", ROOM_ID))
 			.andExpect(
 				mvcResult -> Assert.assertEquals(HttpStatus.CREATED.value(), mvcResult.getResponse().getStatus()))
 			.andReturn();
 
-		Map receiveResultMap = objectMapper.readValue(receiveResult.getResponse().getContentAsString(), Map.class);
-		Integer receiveAmount = (Integer)receiveResultMap.get("amount");
-		Assert.assertTrue(receiveAmount < AMOUNT);
-		Assert.assertTrue(receiveAmount > 0);
+		SprinkleReceiveResponse sprinkleReceiveResponse = objectMapper.readValue(receiveResult.getResponse().getContentAsString(), SprinkleReceiveResponse.class);
+		Assert.assertTrue(sprinkleReceiveResponse.getAmount() < AMOUNT);
+		Assert.assertTrue(sprinkleReceiveResponse.getAmount() > 0);
 
 		// 3. 조회
-		MvcResult getResult = mockMvc.perform(get("/sprinkle").headers(httpHeaders)
-			.content(objectMapper.writeValueAsString(commonRequest))
+		MvcResult getResult = mockMvc.perform(get("/sprinkle/{token}", token).headers(httpHeaders)
 			.contentType("application/json"))
 			.andExpect(
 				mvcResult -> Assert.assertEquals(HttpStatus.OK.value(), mvcResult.getResponse().getStatus()))
 			.andReturn();
 
-		SprinkleInfo sprinkleInfo = objectMapper.readValue(getResult.getResponse().getContentAsString(), SprinkleInfo.class);
-		Assert.assertEquals(receiveAmount, sprinkleInfo.getReceiveAmount());
-		Assert.assertEquals(AMOUNT, sprinkleInfo.getSprinkleAmount().intValue());
-		Assert.assertEquals(1, sprinkleInfo.getReceiverInfo().size());
-		Assert.assertEquals(receiveAmount, sprinkleInfo.getReceiverInfo().get(0).getAmount());
-		Assert.assertEquals(RECEIVE_USER_ID, sprinkleInfo.getReceiverInfo().get(0).getUserId());
-	}
-
-	// @Test
-	@Transactional
-	public void test_receive() throws InterruptedException {
-		Sprinkle sprinkle = new Sprinkle();
-		String token = "1234";
-		sprinkle.setToken(token);
-		sprinkle.setRoomId("roomid");
-		sprinkle.setUserId(1111);
-		sprinkle.setUserCount(3);
-		sprinkle.setAmount(100);
-		sprinkleService.sprinkle(sprinkle);
-
-		Sprinkle sprinkleByToken = sprinkleRepository.findByTokenAndRoomId(token, roomId);
-		Assert.assertNotNull(sprinkleByToken);
-
-		// when
-		final ExecutorService executor = Executors.newFixedThreadPool(3);
-
-		for (int i = 0; i < 3; i++) {
-			executor.execute(() -> sprinkleService.receive(token, 1111, roomId));
-		}
-		executor.shutdown();
-		executor.awaitTermination(1, TimeUnit.MINUTES);
-
-		Assert.assertNotNull(sprinkleRepository.findByTokenAndRoomId(token, roomId));
-
-		List<Receiver> receivers = receiverRepository.findAll();
-		int totalAmount = 0;
-		for (Receiver receiver : receivers) {
-			totalAmount += receiver.getAmount();
-			System.out.println(receiver);
-		}
-
-		Assert.assertEquals(100, totalAmount);
+		SprinkleGetResponse sprinkleGetResponse = objectMapper.readValue(getResult.getResponse().getContentAsString(), SprinkleGetResponse.class);
+		Assert.assertEquals(sprinkleReceiveResponse.getAmount(), sprinkleGetResponse.getReceiveAmount());
+		Assert.assertEquals(AMOUNT, sprinkleGetResponse.getSprinkleAmount().intValue());
+		Assert.assertEquals(1, sprinkleGetResponse.getReceiverInfo().size());
+		Assert.assertEquals(sprinkleReceiveResponse.getAmount(), sprinkleGetResponse.getReceiverInfo().get(0).getAmount());
+		Assert.assertEquals(RECEIVE_USER_ID, sprinkleGetResponse.getReceiverInfo().get(0).getUserId());
 	}
 }

@@ -8,10 +8,9 @@ import lombok.Setter;
 @Setter
 @Getter
 @AllArgsConstructor
-public class ReceiverInfo {
-	@Schema(description = "받은 금액", required = true)
-	Integer userId;
+public class SprinkleReceiveResponse {
+	public SprinkleReceiveResponse() { }
 
-	@Schema(description = "받은 사용자 아이디", required = true)
-	Integer amount;
+	@Schema(description = "받은 금액", required = true)
+	private Integer amount;
 }

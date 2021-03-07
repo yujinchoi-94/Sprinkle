@@ -10,15 +10,13 @@ import javax.persistence.PrePersist;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 @Entity
 @Getter
 @Setter
-@ToString
 public class Sprinkle {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private Long id;
 	private Integer userId;
 	private String roomId;

@@ -15,7 +15,7 @@ import com.yujinchoi.kakaopay.repository.SprinkleRepository;
 import com.yujinchoi.kakaopay.exception.ErrorCode;
 import com.yujinchoi.kakaopay.model.Receiver;
 import com.yujinchoi.kakaopay.model.response.ReceiverInfo;
-import com.yujinchoi.kakaopay.model.response.SprinkleInfo;
+import com.yujinchoi.kakaopay.model.response.SprinkleGetResponse;
 import com.yujinchoi.kakaopay.repository.ReceiverRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +30,7 @@ public class SprinkleService {
 	public void sprinkle(Sprinkle sprinkle) {
 		sprinkleRepository.save(sprinkle);
 		for (int amount : randomAmount(sprinkle.getAmount(), sprinkle.getUserCount())) {
+			System.out.println("쓰기");
 			Receiver receiver = new Receiver();
 			receiver.setAmount(amount);
 			receiver.setSprinkle(sprinkle);
@@ -62,6 +63,9 @@ public class SprinkleService {
 	@Transactional(timeout = 2)
 	public Integer receive(String token, int userId, String roomId) {
 		Sprinkle sprinkle = sprinkleRepository.findByTokenAndRoomId(token, roomId);
+		if (sprinkle == null) {
+			throw new ServiceException(ErrorCode.INVALID_TOKEN);
+		}
 
 		if (sprinkle.getUserId().equals(userId)) {
 			throw new ServiceException(ErrorCode.CAN_NOT_RECEIVE);
@@ -86,11 +90,9 @@ public class SprinkleService {
 	}
 
 	@Transactional(readOnly = true)
-	public SprinkleInfo get(String token, int userId, String roomId) {
+	public SprinkleGetResponse get(String token, int userId, String roomId) {
 		Sprinkle sprinkle = sprinkleRepository.findByTokenAndUserIdAndRoomId(token, userId, roomId);
 		if (sprinkle == null) {
-			// 1. 내 token이 아닌 경우
-			// 2. 존재하지 않는 토큰 일경우
 			throw new ServiceException(ErrorCode.INVALID_TOKEN);
 		}
 
@@ -107,12 +109,12 @@ public class SprinkleService {
 			receiverInfos.add(new ReceiverInfo(receiver.getUserId(), receiver.getAmount()));
 		}
 
-		SprinkleInfo sprinkleInfo = new SprinkleInfo();
-		sprinkleInfo.setCreatedAt(sprinkle.getCreatedAt());
-		sprinkleInfo.setReceiveAmount(receiveAmount);
-		sprinkleInfo.setSprinkleAmount(sprinkle.getAmount());
-		sprinkleInfo.setReceiverInfo(receiverInfos);
+		SprinkleGetResponse sprinkleGetResponse = new SprinkleGetResponse();
+		sprinkleGetResponse.setCreatedAt(sprinkle.getCreatedAt());
+		sprinkleGetResponse.setReceiveAmount(receiveAmount);
+		sprinkleGetResponse.setSprinkleAmount(sprinkle.getAmount());
+		sprinkleGetResponse.setReceiverInfo(receiverInfos);
 
-		return sprinkleInfo;
+		return sprinkleGetResponse;
 	}
 }

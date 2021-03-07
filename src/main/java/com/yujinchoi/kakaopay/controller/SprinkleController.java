@@ -1,28 +1,33 @@
 package com.yujinchoi.kakaopay.controller;
 
 import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.yujinchoi.kakaopay.model.request.CommonRequest;
-import com.yujinchoi.kakaopay.model.request.SprinkleRequest;
 import com.yujinchoi.kakaopay.model.Sprinkle;
-import com.yujinchoi.kakaopay.model.response.SprinkleInfo;
+import com.yujinchoi.kakaopay.model.request.SprinkleRequest;
+import com.yujinchoi.kakaopay.model.response.SprinkleGetResponse;
+import com.yujinchoi.kakaopay.model.response.SprinkleReceiveResponse;
+import com.yujinchoi.kakaopay.model.response.SprinkleResponse;
 import com.yujinchoi.kakaopay.service.SprinkleService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequestMapping("/sprinkle")
@@ -31,10 +36,14 @@ import lombok.RequiredArgsConstructor;
 public class SprinkleController {
 	private final SprinkleService sprinkleService;
 
+	@Operation(summary = "뿌리기")
 	@PostMapping
-	public ResponseEntity sprinkle(@RequestHeader("X-USER-ID") int userId,
+	@ResponseStatus(HttpStatus.CREATED)
+	public SprinkleResponse sprinkle(@RequestHeader("X-USER-ID") int userId,
 		@NotBlank @RequestHeader("X-ROOM-ID") String roomId,
+		@Parameter(required = true, schema = @Schema(implementation = SprinkleRequest.class))
 		@Valid @RequestBody SprinkleRequest request) {
+
 		Sprinkle sprinkle = new Sprinkle();
 		String token = generateToken();
 		sprinkle.setToken(token);
@@ -45,28 +54,25 @@ public class SprinkleController {
 
 		sprinkleService.sprinkle(sprinkle);
 
-		Map map = new HashMap();
-		map.put("token", token);
-
-		return new ResponseEntity<>(map, HttpStatus.CREATED);
+		return new SprinkleResponse(token);
 	}
 
-	@PostMapping("/receive")
-	public ResponseEntity receiveSprinkle(@RequestHeader("X-USER-ID") int userId,
+	@Operation(summary = "뿌린 금액 받기")
+	@PostMapping("/receive/{token}")
+	@ResponseStatus(HttpStatus.CREATED)
+	public SprinkleReceiveResponse receiveSprinkle(@RequestHeader("X-USER-ID") int userId,
 		@RequestHeader("X-ROOM-ID") String roomId,
-		@Valid @RequestBody CommonRequest commonRequest) {
-		int amount = sprinkleService.receive(commonRequest.getToken(), userId, roomId);
-
-		Map map = new HashMap();
-		map.put("amount", amount);
-		return new ResponseEntity(map, HttpStatus.CREATED);
+		@NotBlank @PathVariable String token) {
+		return new SprinkleReceiveResponse(sprinkleService.receive(token, userId, roomId));
 	}
 
-	@GetMapping
-	public SprinkleInfo getSprinkle(@RequestHeader("X-USER-ID") int userId,
+	@Operation(summary = "뿌리기 조회")
+	@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = SprinkleGetResponse.class)))
+	@GetMapping("/{token}")
+	public SprinkleGetResponse getSprinkle(@RequestHeader("X-USER-ID") int userId,
 		@RequestHeader("X-ROOM-ID") String roomId,
-		@Valid @RequestBody CommonRequest commonRequest) {
-		return sprinkleService.get(commonRequest.getToken(), userId, roomId);
+		@NotBlank @PathVariable String token) {
+		return sprinkleService.get(token, userId, roomId);
 	}
 
 	private String generateToken() {
