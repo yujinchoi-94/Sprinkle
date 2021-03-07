@@ -111,4 +111,3 @@ GET /sprinkle/{token}
   
 # DB 스키마
 <img width="714" alt="스크린샷 2021-03-07 오후 7 21 30" src="https://user-images.githubusercontent.com/30385786/110236651-5395dc80-7f7a-11eb-899f-b53f9ec7c1d2.png">
-

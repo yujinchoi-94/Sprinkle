@@ -6,7 +6,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yujinchoi.kakaopay.exception.ErrorCode;
 import com.yujinchoi.kakaopay.exception.ErrorResult;
 import com.yujinchoi.kakaopay.exception.ServiceException;
-import com.yujinchoi.kakaopay.model.entity.Sprinkle;
 import com.yujinchoi.kakaopay.model.http.request.SprinkleRequest;
 import com.yujinchoi.kakaopay.model.http.response.SprinkleGetResponse;
 import com.yujinchoi.kakaopay.model.http.response.SprinkleReceiveResponse;
@@ -65,24 +63,17 @@ public class SprinkleControllerTest {
 
 	@Test
 	public void test_sprinkle() throws Exception {
-		MvcResult result = mockMvc.perform(post("/sprinkle").headers(httpHeaders)
+		Mockito.when(sprinkleService.sprinkle(sprinkleRequest, USER_ID, ROOM_ID))
+			.thenReturn(new SprinkleResponse(TOKEN));
+
+		mockMvc.perform(post("/sprinkle").headers(httpHeaders)
 			.content(objectMapper.writeValueAsString(sprinkleRequest))
 			.contentType("application/json"))
 			.andExpect(
 				mvcResult -> Assert.assertEquals(HttpStatus.CREATED.value(), mvcResult.getResponse().getStatus()))
 			.andReturn();
 
-		String content = result.getResponse().getContentAsString();
-		SprinkleResponse response = objectMapper.readValue(content, SprinkleResponse.class);
-
-		ArgumentCaptor<Sprinkle> argumentCaptor = ArgumentCaptor.forClass(Sprinkle.class);
-		Mockito.verify(sprinkleService, Mockito.times(1)).sprinkle(argumentCaptor.capture());
-		Assert.assertEquals(USER_ID, argumentCaptor.getValue().getUserId().intValue());
-		Assert.assertEquals(ROOM_ID, argumentCaptor.getValue().getRoomId());
-		Assert.assertEquals(AMOUNT, argumentCaptor.getValue().getAmount().intValue());
-		Assert.assertEquals(USER_COUNT, argumentCaptor.getValue().getUserCount().intValue());
-		Assert.assertEquals(3, argumentCaptor.getValue().getToken().length());
-		Assert.assertEquals(argumentCaptor.getValue().getToken(), response.getToken());
+		Mockito.verify(sprinkleService, Mockito.times(1)).sprinkle(Mockito.any(SprinkleRequest.class), Mockito.eq(USER_ID), Mockito.eq(ROOM_ID));
 	}
 
 	@Test
@@ -94,7 +85,8 @@ public class SprinkleControllerTest {
 				mvcResult -> Assert.assertEquals(
 					"Missing request header 'X-USER-ID' for method parameter of type int",
 					mvcResult.getResponse().getErrorMessage()));
-		Mockito.verify(sprinkleService, Mockito.never()).sprinkle(Mockito.any(Sprinkle.class));
+		Mockito.verify(sprinkleService, Mockito.never())
+			.sprinkle(Mockito.any(SprinkleRequest.class), Mockito.anyInt(), Mockito.anyString());
 	}
 
 	@Test
@@ -106,7 +98,8 @@ public class SprinkleControllerTest {
 				mvcResult -> Assert.assertEquals(
 					"Missing request header 'X-ROOM-ID' for method parameter of type String",
 					mvcResult.getResponse().getErrorMessage()));
-		Mockito.verify(sprinkleService, Mockito.never()).sprinkle(Mockito.any(Sprinkle.class));
+		Mockito.verify(sprinkleService, Mockito.never())
+			.sprinkle(Mockito.any(SprinkleRequest.class), Mockito.anyInt(), Mockito.anyString());
 	}
 
 	@Test
@@ -116,18 +109,20 @@ public class SprinkleControllerTest {
 			.andExpect(
 				mvcResult -> Assert.assertEquals(HttpStatus.BAD_REQUEST.value(), mvcResult.getResponse().getStatus()))
 			.andReturn();
-		Mockito.verify(sprinkleService, Mockito.never()).sprinkle(Mockito.any(Sprinkle.class));
+		Mockito.verify(sprinkleService, Mockito.never())
+			.sprinkle(Mockito.any(SprinkleRequest.class), Mockito.anyInt(), Mockito.anyString());
 	}
 
 	@Test
 	public void test_receive() throws Exception {
-		Mockito.when(sprinkleService.receive(TOKEN, USER_ID, ROOM_ID)).thenReturn(AMOUNT);
+		Mockito.when(sprinkleService.receive(TOKEN, USER_ID, ROOM_ID)).thenReturn(new SprinkleReceiveResponse(AMOUNT));
 
 		mockMvc.perform(post("/sprinkle/receive/{token}", TOKEN).headers(httpHeaders))
 			.andExpect(
 				mvcResult -> Assert.assertEquals(HttpStatus.CREATED.value(), mvcResult.getResponse().getStatus()))
 			.andExpect(mvcResult -> {
-					SprinkleReceiveResponse response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), SprinkleReceiveResponse.class);
+					SprinkleReceiveResponse response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+						SprinkleReceiveResponse.class);
 					Assert.assertEquals(AMOUNT, response.getAmount().intValue());
 				}
 			);
@@ -216,7 +211,8 @@ public class SprinkleControllerTest {
 
 	@Test
 	public void test_sprinkleService_throw_ObjectOptimisticLockingFailureException() throws Exception {
-		Mockito.when(sprinkleService.receive(TOKEN, USER_ID, ROOM_ID)).thenThrow(new ObjectOptimisticLockingFailureException("", new Throwable()));
+		Mockito.when(sprinkleService.receive(TOKEN, USER_ID, ROOM_ID))
+			.thenThrow(new ObjectOptimisticLockingFailureException("", new Throwable()));
 
 		MvcResult result = mockMvc.perform(post("/sprinkle/receive/{token}", TOKEN).headers(httpHeaders))
 			.andExpect(

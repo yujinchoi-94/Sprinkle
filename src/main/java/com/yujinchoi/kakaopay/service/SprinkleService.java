@@ -1,16 +1,21 @@
 package com.yujinchoi.kakaopay.service;
 
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.yujinchoi.kakaopay.exception.ServiceException;
 import com.yujinchoi.kakaopay.model.entity.Sprinkle;
+import com.yujinchoi.kakaopay.model.http.request.SprinkleRequest;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleReceiveResponse;
+import com.yujinchoi.kakaopay.model.http.response.SprinkleResponse;
 import com.yujinchoi.kakaopay.repository.SprinkleRepository;
 import com.yujinchoi.kakaopay.exception.ErrorCode;
 import com.yujinchoi.kakaopay.model.entity.Receiver;
@@ -27,7 +32,16 @@ public class SprinkleService {
 	private final ReceiverRepository receiverRepository;
 
 	@Transactional
-	public void sprinkle(Sprinkle sprinkle) {
+	public SprinkleResponse sprinkle(SprinkleRequest request, int userId, String roomId) {
+		String token = generateToken();
+
+		Sprinkle sprinkle = new Sprinkle();
+		sprinkle.setToken(token);
+		sprinkle.setRoomId(roomId);
+		sprinkle.setUserId(userId);
+		sprinkle.setUserCount(request.getUserCount());
+		sprinkle.setAmount(request.getAmount());
+
 		sprinkleRepository.save(sprinkle);
 		for (int amount : randomAmount(sprinkle.getAmount(), sprinkle.getUserCount())) {
 			Receiver receiver = new Receiver();
@@ -35,6 +49,12 @@ public class SprinkleService {
 			receiver.setSprinkle(sprinkle);
 			receiverRepository.save(receiver);
 		}
+
+		return new SprinkleResponse(token);
+	}
+
+	private String generateToken() {
+		return RandomStringUtils.random(3, 0, 0, true, false, null, new SecureRandom());
 	}
 
 	private int[] randomAmount(int amount, int userCount) {
@@ -60,7 +80,7 @@ public class SprinkleService {
 	}
 
 	@Transactional
-	public Integer receive(String token, int userId, String roomId) {
+	public SprinkleReceiveResponse receive(String token, int userId, String roomId) {
 		Sprinkle sprinkle = sprinkleRepository.findByTokenAndRoomId(token, roomId);
 		if (sprinkle == null) {
 			throw new ServiceException(ErrorCode.INVALID_TOKEN);
@@ -85,7 +105,7 @@ public class SprinkleService {
 		}
 
 		receiver.setUserId(userId);
-		return receiver.getAmount();
+		return new SprinkleReceiveResponse(receiver.getAmount());
 	}
 
 	@Transactional(readOnly = true)

@@ -1,11 +1,8 @@
 package com.yujinchoi.kakaopay.controller;
 
-import java.security.SecureRandom;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.yujinchoi.kakaopay.model.entity.Sprinkle;
 import com.yujinchoi.kakaopay.model.http.request.SprinkleRequest;
 import com.yujinchoi.kakaopay.model.http.response.SprinkleGetResponse;
 import com.yujinchoi.kakaopay.model.http.response.SprinkleReceiveResponse;
@@ -43,18 +39,7 @@ public class SprinkleController {
 		@NotBlank @RequestHeader("X-ROOM-ID") String roomId,
 		@Parameter(required = true, schema = @Schema(implementation = SprinkleRequest.class))
 		@Valid @RequestBody SprinkleRequest request) {
-
-		Sprinkle sprinkle = new Sprinkle();
-		String token = generateToken();
-		sprinkle.setToken(token);
-		sprinkle.setRoomId(roomId);
-		sprinkle.setUserId(userId);
-		sprinkle.setUserCount(request.getUserCount());
-		sprinkle.setAmount(request.getAmount());
-
-		sprinkleService.sprinkle(sprinkle);
-
-		return new SprinkleResponse(token);
+		return sprinkleService.sprinkle(request, userId, roomId);
 	}
 
 	@Operation(summary = "뿌린 금액 받기")
@@ -63,7 +48,7 @@ public class SprinkleController {
 	public SprinkleReceiveResponse receiveSprinkle(@RequestHeader("X-USER-ID") int userId,
 		@RequestHeader("X-ROOM-ID") String roomId,
 		@NotBlank @PathVariable String token) {
-		return new SprinkleReceiveResponse(sprinkleService.receive(token, userId, roomId));
+		return sprinkleService.receive(token, userId, roomId);
 	}
 
 	@Operation(summary = "뿌리기 조회")
@@ -74,9 +59,4 @@ public class SprinkleController {
 		@NotBlank @PathVariable String token) {
 		return sprinkleService.get(token, userId, roomId);
 	}
-
-	private String generateToken() {
-		return RandomStringUtils.random(3, 0, 0, true, false, null, new SecureRandom());
-	}
-
 }
